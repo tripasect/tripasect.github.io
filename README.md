@@ -1,1 +1,1 @@
-# Tripasect Website
+# Ethan 'Tripasect' Sadjadipour's Website
