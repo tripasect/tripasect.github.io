@@ -1,0 +1,64 @@
+{
+  "vectorGraphics": {
+    "part1": {
+      "totalHours": 0,
+      "projects": [
+        {
+          "id": 1,
+          "title": "Geometric Character",
+          "status": "Not Started",
+          "tasks": [
+            { "description": "Create a simple character using only basic shapes (circles, squares, rectangles)", "completed": false },
+            { "description": "Implement at least 3 different colors with a cohesive palette", "completed": false },
+            { "description": "Add simple shadows using shapes (not gradients yet)", "completed": false },
+            { "description": "Practice pen tool for at least one custom shape (like a bowtie or hat)", "completed": false }
+          ]
+        },
+        {
+          "id": 2,
+          "title": "Flat Icon Set",
+          "status": "Not Started",
+          "tasks": [
+            { "description": "Design 4 related icons (e.g., weather, food, or tech themes)", "completed": false },
+            { "description": "Use the pen tool to create custom shapes", "completed": false },
+            { "description": "Implement a consistent color scheme across all icons", "completed": false },
+            { "description": "Practice alignment and spacing for visual harmony", "completed": false }
+          ]
+        },
+        {
+          "id": 3,
+          "title": "Simple Landscape",
+          "status": "Not Started",
+          "tasks": [
+            { "description": "Create a stylized landscape with foreground, middle ground, and background", "completed": false },
+            { "description": "Use the pen tool to create organic shapes (hills, clouds, trees)", "completed": false },
+            { "description": "Implement a limited color palette (5-7 colors)", "completed": false },
+            { "description": "Add simple texture using shape repetition", "completed": false }
+          ]
+        },
+        {
+          "id": 4,
+          "title": "Food Illustration",
+          "status": "Not Started",
+          "tasks": [
+            { "description": "Illustrate a meal or food item with multiple components", "completed": false },
+            { "description": "Practice curved lines and organic shapes", "completed": false },
+            { "description": "Experiment with opacity and layering", "completed": false },
+            { "description": "Add highlights and shadows to create dimension", "completed": false }
+          ]
+        },
+        {
+          "id": 5,
+          "title": "Plant or Animal",
+          "status": "Not Started",
+          "tasks": [
+            { "description": "Create a more detailed natural subject", "completed": false },
+            { "description": "Implement gradients for the first time", "completed": false },
+            { "description": "Use the pen tool for more complex curved shapes", "completed": false },
+            { "description": "Practice creating depth through overlapping elements", "completed": false }
+          ]
+        }
+      ]
+    }
+  }
+}
