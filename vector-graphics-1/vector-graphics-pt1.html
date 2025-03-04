@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Graphics, pt. 1</title>
+  <style>
+    :root {
+      --color-primary: #4CAF50;
+      --color-secondary: #f1f1f1;
+      --color-tertiary: #757575;
+      --color-accent: #FF5722;
+      --color-text: #333333;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: var(--color-text);
+      margin: 0;
+      padding: 0;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .progress {
+      display: flex;
+      gap: 2rem;
+      margin: 2rem 0;
+      padding: 1rem;
+      border: 1px solid var(--color-secondary);
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .number {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--color-accent);
+    }
+    
+    .label {
+      color: var(--color-tertiary);
+      font-size: 0.9rem;
+    }
+    
+    .project {
+      border: 1px solid var(--color-secondary);
+      margin: 1rem 0;
+      padding: 1rem;
+    }
+    
+    .project-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .status {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.5rem;
+    }
+    
+    .status.not-started { color: var(--color-tertiary); }
+    .status.in-progress { color: var(--color-accent); }
+    .status.complete { color: var(--color-primary); }
+    
+    .tasks {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .tasks li {
+      margin: 0.5rem 0;
+    }
+    
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+      accent-color: var(--color-accent);
+    }
+    
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    
+    .sync-status {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background: var(--color-secondary);
+      color: var(--color-text);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .error {
+      color: var(--color-accent);
+      padding: 0.5rem;
+      margin: 1rem 0;
+      border: 1px solid var(--color-accent);
+    }
+    
+    .permission-notice {
+      background: var(--color-secondary);
+      color: var(--color-text);
+      padding: 0.5rem;
+      margin: 1rem 0;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin: 1rem 0;
+    }
+    
+    .error-message {
+      color: var(--color-accent);
+      font-size: 0.9rem;
+    }
+    
+    button {
+      padding: 0.5rem 1rem;
+      background: var(--color-accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <h1>Vector Graphics, pt. 1</h1>
+    <p>A structured approach to learning vector illustration</p>
+    
+    <div class="controls">
+      <button id="refreshButton">Refresh Data</button>
+      <span id="errorMessage" class="error-message"></span>
+    </div>
+    
+    <div class="progress">
+      <div class="stat">
+        <span id="completedTasksCount" class="number">0/0</span>
+        <span class="label">Tasks Done</span>
+      </div>
+      <div class="stat">
+        <span id="progressPercentage" class="number">0%</span>
+        <span class="label">Complete</span>
+      </div>
+      <div class="stat">
+        <span id="hoursIn" class="number">0h</span>
+        <span class="label">Hours In</span>
+      </div>
+    </div>
+
+    <div id="projectsContainer"></div>
+  </div>
+
+  <script>
+    // App state
+    let projects = [];
+    let hoursIn = 0;
+    let isLoading = false;
+    let error = null;
+
+    // DOM elements
+    const refreshButton = document.getElementById('refreshButton');
+    const errorMessage = document.getElementById('errorMessage');
+    const completedTasksCount = document.getElementById('completedTasksCount');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const hoursInElement = document.getElementById('hoursIn');
+    const projectsContainer = document.getElementById('projectsContainer');
+
+    // Event listeners
+    refreshButton.addEventListener('click', () => forceRefresh());
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+    });
+
+    // Functions
+    async function loadData(forceRefresh = false) {
+      setLoading(true);
+      error = null;
+      errorMessage.textContent = '';
+      
+      try {
+        // Only use localStorage if not forcing refresh
+        if (!forceRefresh) {
+          const saved = localStorage.getItem('vectorGraphicsProjects');
+          if (saved) {
+            const { projects: savedProjects, hoursIn: savedHours } = JSON.parse(saved);
+            projects = savedProjects;
+            hoursIn = savedHours;
+            renderProjects();
+            updateStats();
+          }
+        }
+
+        // Add timestamp to prevent caching
+        const timestamp = new Date().getTime();
+        const response = await fetch(
+          `https://raw.githubusercontent.com/tripasect/tripasect.github.io/refs/heads/main/db.json?t=${timestamp}`,
+          {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched data:', data); // Debug log
+        
+        projects = data.vectorGraphics.part1.projects;
+        hoursIn = data.vectorGraphics.part1.totalHours;
+        
+        renderProjects();
+        updateStats();
+        saveChanges();
+      } catch (err) {
+        console.error('Failed to load data:', err);
+        error = `Failed to load data: ${err.message}`;
+        errorMessage.textContent = error;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function forceRefresh() {
+      await loadData(true);
+    }
+
+    function saveChanges(project) {
+      if (project) {
+        updateProgress(project);
+      }
+      
+      localStorage.setItem('vectorGraphicsProjects', JSON.stringify({
+        projects: projects,
+        hoursIn: hoursIn
+      }));
+
+      updateStats();
+    }
+
+    function getCompletedTasksCount() {
+      return projects.reduce((acc, project) => {
+        return acc + project.tasks.filter(task => task.completed).length;
+      }, 0);
+    }
+
+    function getTotalTasksCount() {
+      return projects.reduce((acc, project) => {
+        return acc + project.tasks.length;
+      }, 0);
+    }
+
+    function getProgressPercentage() {
+      const completed = getCompletedTasksCount();
+      const total = getTotalTasksCount();
+      return total > 0 ? Math.round((completed / total) * 100) : 0;
+    }
+
+    function updateProgress(project) {
+      const completed = project.tasks.filter(t => t.completed).length;
+      const total = project.tasks.length;
+      
+      if (completed === 0) project.status = 'Not Started';
+      else if (completed === total) project.status = 'Complete';
+      else project.status = 'In Progress';
+    }
+
+    function getStatusClass(status) {
+      return status.toLowerCase().replace(' ', '-');
+    }
+
+    function setLoading(loading) {
+      isLoading = loading;
+      refreshButton.disabled = loading;
+      refreshButton.textContent = loading ? 'Loading...' : 'Refresh Data';
+    }
+
+    function updateStats() {
+      const completed = getCompletedTasksCount();
+      const total = getTotalTasksCount();
+      const percentage = getProgressPercentage();
+      
+      completedTasksCount.textContent = `${completed}/${total}`;
+      progressPercentage.textContent = `${percentage}%`;
+      hoursInElement.textContent = `${hoursIn}h`;
+    }
+
+    function renderProjects() {
+      projectsContainer.innerHTML = '';
+      
+      projects.forEach(project => {
+        const projectElement = document.createElement('div');
+        projectElement.className = 'project';
+        
+        const header = document.createElement('div');
+        header.className = 'project-header';
+        
+        const title = document.createElement('h3');
+        title.textContent = project.title;
+        
+        const status = document.createElement('span');
+        status.className = `status ${getStatusClass(project.status)}`;
+        status.textContent = project.status;
+        
+        header.appendChild(title);
+        header.appendChild(status);
+        
+        const tasksList = document.createElement('ul');
+        tasksList.className = 'tasks';
+        
+        project.tasks.forEach((task, index) => {
+          const taskItem = document.createElement('li');
+          
+          const label = document.createElement('label');
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.completed;
+          checkbox.addEventListener('change', () => {
+            task.completed = checkbox.checked;
+            saveChanges(project);
+            renderProjects(); // Re-render to update status
+          });
+          
+          const taskText = document.createElement('span');
+          taskText.textContent = task.description;
+          
+          label.appendChild(checkbox);
+          label.appendChild(taskText);
+          
+          taskItem.appendChild(label);
+          tasksList.appendChild(taskItem);
+        });
+        
+        projectElement.appendChild(header);
+        projectElement.appendChild(tasksList);
+        
+        projectsContainer.appendChild(projectElement);
+      });
+    }
+  </script>
+</body>
+</html>
