@@ -8,7 +8,7 @@
           "title": "Geometric Character",
           "status": "Not Started",
           "tasks": [
-            { "description": "Create a simple character using only basic shapes (circles, squares, rectangles)", "completed": false },
+            { "description": "Create a simple character using only basic shapes (circles, squares, rectangles)", "completed": true },
             { "description": "Implement at least 3 different colors with a cohesive palette", "completed": false },
             { "description": "Add simple shadows using shapes (not gradients yet)", "completed": false },
             { "description": "Practice pen tool for at least one custom shape (like a bowtie or hat)", "completed": false }
